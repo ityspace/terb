@@ -2,7 +2,7 @@ extern crate liquid;
 extern crate pulldown_cmark;
 
 use pulldown_cmark::HeadingLevel;
-use pulldown_cmark::{html, Event, Parser, Tag};
+use pulldown_cmark::{html, Event, Parser, Tag, Options};
 use std::env;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -157,7 +157,7 @@ fn check_dir(path: &str) {
     let path = Path::new(path);
     if !path.exists() {
         println!(
-            "Directory '{}' not found, create now? (Y/N)",
+            "Directory '{}' not found, create now? (Y/n)",
             path.display()
         );
         let mut input = String::new();
@@ -263,7 +263,14 @@ fn extract_date(file_path: &Path) -> String {
 }
 fn generate_html(md_file: &Path) -> String {
     let md_string = fs::read_to_string(md_file).expect("Error reading Markdown file");
-    let parser = Parser::new(&md_string);
+    let mut options = Options::empty();
+    options.insert(Options::ENABLE_STRIKETHROUGH);
+    options.insert(Options::ENABLE_TABLES);
+    options.insert(Options::ENABLE_FOOTNOTES);
+    options.insert(Options::ENABLE_TASKLISTS);
+    options.insert(Options::ENABLE_SMART_PUNCTUATION);
+    options.insert(Options::ENABLE_HEADING_ATTRIBUTES);
+    let parser = Parser::new_ext(&md_string, options);
     let mut html_string = String::new();
     html::push_html(&mut html_string, parser);
     html_string
@@ -322,7 +329,7 @@ fn generate_list() {
             &fs::read_to_string(".terb/template/list.liquid").expect("Error reading template file"),
         )
         .expect("Error parsing template file");
-    let config: toml::Value = toml::from_str(&fs::read_to_string("config.toml").unwrap()).unwrap();
+    let config: toml::Value = toml::from_str(&fs::read_to_string(".terb/config.toml").unwrap()).unwrap();
     let blogtitle = config["blogtitle"].as_str().unwrap();
     let description = config["description"].as_str().unwrap();
     let author = config["author"].as_str().unwrap();

@@ -1,18 +1,25 @@
 # terb
 
-*Blog generator in Terminal.*
+A terminal-based blog generator.
 
-***Version 0.0.1***
+Version ***0.0.1***
+
+## Features
+
+- Creates a blog using a simple command line interface
+- Uses Liquid templates for customization
+- Generates a list of posts and individual post pages
+- Built with Rust for performance and reliability
 
 ## Dev
 
 ```
 curl https://sh.rustup.rs -sSf | sh
+
+cargo run
+
+cargo build
 ```
-
-```cargo build```
-
-```cargo run```
 
 ## How to use
 
@@ -23,7 +30,7 @@ Usage: terb COMMAND
 -S Run Web Server
 ```                  
 
-You need to crate template/list.html as template file for generate post list. An example here:
+Crate template/list.html for generate post list. An example here:
 
 ```html
 <!DOCTYPE html>
@@ -44,7 +51,7 @@ You need to crate template/list.html as template file for generate post list. An
 
 ```
 
-You need to crate template/post.html as template file for article page. An example here:
+Crate template/post.html for article page. An example here:
 
 ```html
 <!DOCTYPE html>
@@ -58,3 +65,7 @@ You need to crate template/post.html as template file for article page. An examp
 </html>
 
 ```
+
+## Contribution
+
+Please open an issue or a pull request if you wish to contribute to the project.

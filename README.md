@@ -66,6 +66,8 @@ Crate template/post.html for article page. An example here:
 
 ```
 
+The list_path attribute in config determines the location of the output list with articles, you can type static/index.html
+
 ## Contribution
 
 Please open an issue or a pull request if you wish to contribute to the project.

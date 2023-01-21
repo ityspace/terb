@@ -2,7 +2,7 @@
 
 A terminal-based blog generator.
 
-Version ***0.0.1***
+Version ***0.0.2***
 
 ## Features
 
@@ -30,7 +30,7 @@ Usage: terb COMMAND
 -S Run Web Server
 ```                  
 
-Crate template/list.html for generate post list. An example here:
+Crate .terb/template/list.liquid for generate post list. An example here:
 
 ```html
 <!DOCTYPE html>
@@ -51,7 +51,7 @@ Crate template/list.html for generate post list. An example here:
 
 ```
 
-Crate template/post.html for article page. An example here:
+Crate .terb/template/post.liquid for article page. An example here:
 
 ```html
 <!DOCTYPE html>
@@ -66,7 +66,7 @@ Crate template/post.html for article page. An example here:
 
 ```
 
-The list_path attribute in config determines the location of the output list with articles, you can type static/index.html
+The list_path attribute in config determines the location of the output list with articles, you can type out/index.html
 
 ## Contribution
 

@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
+use std::process::Command;
 use std::{fs, io};
 use toml;
 
@@ -19,12 +20,17 @@ fn main() {
         println!("-I Init Blog");
         println!("-G Generate Blog");
         println!("-S Run Web Server");
-        println!("Version 0.0.1");
+        println!("-P Push to Git repository");
+        println!("Version 0.0.2");
         return;
     }
     let command = &args[1];
     match command.as_ref() {
         "-G" => {
+            check_dir("./out");
+            check_dir("./out/posts");
+            check_dir("./posts");
+            check_dir(".terb");
             generate_posts();
             generate_list();
             println!("Success!")
@@ -32,7 +38,7 @@ fn main() {
         "-S" => {
             println!("Serving HTTP on 127.0.0.1 port 7878 (http://localhost:7878/)");
             println!("Press Ctrl+C to exit.");
-            let file_path = Path::new("static/404.html");
+            let file_path = Path::new("out/404.html");
             if !file_path.exists() {
                 let mut file = match File::create(file_path) {
                     Ok(file) => file,
@@ -48,27 +54,101 @@ fn main() {
             }
         }
         "-I" => {
-            let dirs = ["posts", "static", "static/posts"];
+            let dirs = ["posts", "out", "out/posts", ".terb", ".terb/template"];
             for dir in &dirs {
                 match fs::create_dir_all(dir) {
                     Ok(_) => println!("{} directory created", dir),
                     Err(e) => println!("Error creating {} directory: {:?}", dir, e),
                 }
             }
-            println!("Finish!");
             let mut config = toml::value::Table::new();
-            let keys = ["blogtitle", "description", "author", "list_path"];
+            let keys = [
+                "blogtitle",
+                "description",
+                "author",
+                "list_path",
+                "git_repo",
+            ];
             for key in &keys {
                 let mut config_string = String::new();
                 println!("Enter {}:", key);
                 io::stdin().read_line(&mut config_string).unwrap();
                 let value = config_string.trim();
-                config.insert(key.to_string(), toml::Value::String(value.to_string()));
+                if key == &"git_repo" {
+                    let repos: Vec<String> =
+                        value.split(",").map(|s| s.trim().to_string()).collect();
+                    config.insert(
+                        key.to_string(),
+                        toml::Value::Array(
+                            repos.into_iter().map(|s| toml::Value::String(s)).collect(),
+                        ),
+                    );
+                } else {
+                    config.insert(key.to_string(), toml::Value::String(value.to_string()));
+                }
             }
             let config_string = toml::to_string(&toml::Value::Table(config)).unwrap();
-            let mut file = File::create("config.toml").unwrap();
+            let mut file = File::create(".terb/config.toml").unwrap();
             file.write_all(config_string.as_bytes()).unwrap();
+            println!("Do you want to initialize out directory as a git project? (Y/n) Press enter to confirm");
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).unwrap();
+            let input = input.trim();
+            if input == "Y" || input == "" {
+                Command::new("git")
+                    .arg("init")
+                    .current_dir("out")
+                    .output()
+                    .expect("Failed to initialize git repository.");
+                Command::new("git")
+                    .arg("checkout")
+                    .arg("-b")
+                    .arg("main")
+                    .current_dir("out")
+                    .output()
+                    .expect("Failed to create branch main and switch to it.");
+            }
+
             println!("Finish!");
+        }
+        "-P" => {
+            let config: toml::Value =
+                toml::from_str(fs::read_to_string(".terb/config.toml").unwrap().as_str()).unwrap();
+            let git_repo = config.get("git_repo").unwrap().as_array().unwrap();
+
+            for repo in git_repo {
+                let repo_url = repo.as_str().unwrap();
+
+                let output = Command::new("git")
+                    .current_dir("out")
+                    .args(&["remote", "add", "origin", repo_url])
+                    .output()
+                    .expect("Failed to add remote repository.");
+
+                if output.status.success() {
+                    Command::new("git")
+                        .current_dir("out")
+                        .args(&["add", "."])
+                        .output()
+                        .expect("Failed to add files.");
+
+                    let commit_output = Command::new("git")
+                        .current_dir("out")
+                        .args(&["commit", "-m", "Initial commit"])
+                        .output()
+                        .expect("Failed to commit files.");
+
+                    if commit_output.status.success() {
+                        Command::new("git")
+                            .current_dir("out")
+                            .args(&["push", "-u", "origin", "main", "--force"])
+                            .output()
+                            .expect("Failed to push to remote repository.");
+                    } else {
+                        println!("Nothing to commit.");
+                    }
+                }
+            }
         }
         _ => println!("Invalid command"),
     }
@@ -102,27 +182,21 @@ fn handle_connection(mut stream: TcpStream) {
         let _ = request_parts.next().unwrap();
         let requested_path = request_parts.next().unwrap();
         if requested_path == "/" {
-            ("HTTP/1.1 200 OK\r\n\r\n", "static/index.html".to_string())
+            ("HTTP/1.1 200 OK\r\n\r\n", "out/index.html".to_string())
         } else {
             let requested_path = requested_path[1..].to_string();
-            let file_path = Path::new("static").join(requested_path);
+            let file_path = Path::new("out").join(requested_path);
             if file_path.exists() {
                 (
                     "HTTP/1.1 200 OK\r\n\r\n",
                     file_path.to_str().unwrap().to_string(),
                 )
             } else {
-                (
-                    "HTTP/1.1 404 NOT FOUND\r\n\r\n",
-                    "static/404.html".to_string(),
-                )
+                ("HTTP/1.1 404 NOT FOUND\r\n\r\n", "out/404.html".to_string())
             }
         }
     } else {
-        (
-            "HTTP/1.1 404 NOT FOUND\r\n\r\n",
-            "static/404.html".to_string(),
-        )
+        ("HTTP/1.1 404 NOT FOUND\r\n\r\n", "out/404.html".to_string())
     };
     let contents = fs::read_to_string(filename).unwrap();
     let response = format!("{}{}", status_line, contents);
@@ -195,13 +269,12 @@ fn generate_html(md_file: &Path) -> String {
     html_string
 }
 fn generate_posts() {
-    check_dir("./static");
-    check_dir("./static/posts");
-    check_dir("./posts");
     let posts_dir = Path::new("posts");
     let liquid = liquid::ParserBuilder::with_stdlib().build().unwrap();
     let template = liquid
-        .parse(&fs::read_to_string("template/post.html").expect("Error reading template file"))
+        .parse(
+            &fs::read_to_string(".terb/template/post.liquid").expect("Error reading template file"),
+        )
         .expect("Error parsing template file");
     for entry in posts_dir.read_dir().expect("Error reading posts directory") {
         let md_file = entry.expect("Error reading entry").path();
@@ -220,7 +293,7 @@ fn generate_posts() {
         });
         let html_string = template.render(&data).expect("Error rendering template");
         let html_file_name = file_name.to_owned() + ".html";
-        let html_file_path = Path::new("static/posts").join(html_file_name);
+        let html_file_path = Path::new("out/posts").join(html_file_name);
         fs::write(html_file_path, html_string).expect("Error writing HTML file");
     }
 }
@@ -245,7 +318,9 @@ fn generate_list() {
     entries.sort_by(|a, b| b.0.cmp(&a.0));
     let liquid = liquid::ParserBuilder::with_stdlib().build().unwrap();
     let template = liquid
-        .parse(&fs::read_to_string("template/list.html").expect("Error reading template file"))
+        .parse(
+            &fs::read_to_string(".terb/template/list.liquid").expect("Error reading template file"),
+        )
         .expect("Error parsing template file");
     let config: toml::Value = toml::from_str(&fs::read_to_string("config.toml").unwrap()).unwrap();
     let blogtitle = config["blogtitle"].as_str().unwrap();

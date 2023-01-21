@@ -1,0 +1,11 @@
+[package]
+name = "terb"
+version = "0.0.1"
+edition = "2021"
+authors = ["ity <ity@keemail.me>"]
+
+[dependencies]
+liquid = "0.26.0"
+pulldown-cmark = "0.9.2"
+serde_json = "1.0.91"
+toml = "0.5.11"

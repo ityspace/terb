@@ -2,7 +2,7 @@ extern crate liquid;
 extern crate pulldown_cmark;
 
 use pulldown_cmark::HeadingLevel;
-use pulldown_cmark::{html, Event, Parser, Tag, Options};
+use pulldown_cmark::{html, Event, Options, Parser, Tag};
 use std::env;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -329,7 +329,8 @@ fn generate_list() {
             &fs::read_to_string(".terb/template/list.liquid").expect("Error reading template file"),
         )
         .expect("Error parsing template file");
-    let config: toml::Value = toml::from_str(&fs::read_to_string(".terb/config.toml").unwrap()).unwrap();
+    let config: toml::Value =
+        toml::from_str(&fs::read_to_string(".terb/config.toml").unwrap()).unwrap();
     let blogtitle = config["blogtitle"].as_str().unwrap();
     let description = config["description"].as_str().unwrap();
     let author = config["author"].as_str().unwrap();

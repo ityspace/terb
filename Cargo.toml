@@ -3,7 +3,7 @@ name = "terb"
 description = "A blog generator on terminal"
 readme = "README.md"
 license = "GPL3"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 authors = ["ity <ity@keemail.me>"]
 

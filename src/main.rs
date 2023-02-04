@@ -21,7 +21,7 @@ fn main() {
         println!("-G Generate Blog");
         println!("-S Run Web Server");
         println!("-P Push to Git repository");
-        println!("Version 0.0.2");
+        println!("Version 0.1.0");
         return;
     }
     let command = &args[1];
@@ -108,7 +108,7 @@ fn main() {
                     .output()
                     .expect("Failed to create branch main and switch to it.");
             }
-
+            generate_template();
             println!("Finish!");
         }
         "-P" => {
@@ -352,4 +352,547 @@ fn generate_list() {
     let html_string = template.render(&data).expect("Error rendering template");
     let html_file_path = Path::new(config["list_path"].as_str().unwrap());
     fs::write(html_file_path, html_string).expect("Error writing HTML file");
+}
+fn generate_template() {
+    let listhtml = r#"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ blogtitle }}</title>
+    <meta name="description" content="{{ description }}">
+    <meta name="keywords" content="blog, thoughts, experiences">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      html {
+        height: 100%;
+        font-size: 16px;
+        font-family: "ui-monospace", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace
+      }
+
+      body {
+        line-height: calc(16px * 1.618);
+        max-width: 80ch;
+        margin: 1rem auto;
+        color: #333;
+        padding: 0 2rem 2rem 2rem;
+        background: #fff;
+        
+      }
+
+      img,
+      video {
+        max-width: 100%;
+        margin: 0.5em 0;
+        border-radius: 8px
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        line-height: 1.25;
+        font-weight: normal;
+        color: #000
+      }
+
+      h1,
+      h2 {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.1em
+      }
+
+      nav {
+        padding: 0.67em 0 calc(0.67em * 2) 0
+      }
+
+      a img {
+        transition: all 0.5s ease
+      }
+
+      a img:hover {
+        border-radius: 0px
+      }
+
+      a {
+        color: #000
+      }
+
+      a:visited {
+        color: #444
+      }
+
+      a:hover {
+        color: #000;
+        text-decoration: none
+      }
+
+      a:focus {
+        color: crimson
+      }
+
+      header,
+      footer {
+        font-size: 14px
+      }
+
+      nav a {
+        margin-right: 2ch;
+        color: #000
+      }
+
+      nav a:visited {
+        color: #000
+      }
+
+      hr {
+        box-sizing: content-box;
+        height: 0;
+        border: 0;
+        border-top: 1px solid #ddd
+      }
+
+      ul,
+      ol {
+        margin-block-start: 0.25em;
+        margin-block-end: 1em;
+        padding-inline-start: 2.5em
+      }
+
+      ul li::marker {
+        content: '- '
+      }
+
+      ul {
+        padding-inline-start: 1.5em
+      }
+
+      code {
+        background: #eff1f3;
+        color: #000;
+        padding: 2px 1ch;
+        border-radius: 6px;
+        font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+        font-size: 14px
+      }
+
+      pre code {
+        background: transparent;
+        display: block;
+        line-height: 1.25;
+        padding: 1.5em;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid #ddd
+      }
+
+      blockquote {
+        margin-inline-start: 20px;
+        padding-left: 20px;
+        border-left: 2px solid #ddd;
+        font-style: italic
+      }
+
+      table {
+        border-collapse: collapse;
+        max-width: 100%
+      }
+
+      table tr td,
+      table tr th {
+        padding: 0.3em 1ch
+      }
+
+      table tr td {
+        vertical-align: top
+      }
+
+      table tr th {
+        border-bottom: 1px solid #ddd;
+        color: #000;
+        font-weight: normal;
+        text-align: inherit
+      }
+
+      .postlink {
+        line-height: 1.25;
+        white-space: pre-line
+      }
+
+      .postdate {
+        white-space: nowrap;
+        vertical-align: baseline
+      }
+
+      @media(prefers-color-scheme:dark) {
+        body {
+          background-color: #101010;
+          color: #a0aaaf
+        }
+
+        nav a,
+        nav a:visited {
+          color: #d0dadf;
+        }
+
+        nav a:focus {
+          color: #101010
+        }
+
+        a {
+          color: #d0dadf
+        }
+
+        a:visited {
+          color: #808a8f
+        }
+
+        a:hover {
+          background-color: #202325a0;
+          color: #d0dadf
+        }
+
+        a:focus {
+          background-color: #d0dadf;
+          color: #101010
+        }
+
+        hr,
+        table tr th,
+        blockquote {
+          border-color: #808a8f50
+        }
+
+        code,
+        pre code {
+          background-color: transparent;
+          color: #a0aaaf;
+          border: 1px solid #808a8f50
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        table tr th {
+          color: #d0dadf
+        }
+
+        h1,
+        h2 {
+          border-color: #808a8f50
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">ity.moe</a>
+        <a href="/posts/">posts</a>
+        <a href="/projects.html">code</a>
+      </nav>
+    </header>
+    <main>
+ <h1> Article list </h1>
+ <ul>
+  {% for entry in list %}
+    <li><a class="postlink" href="/posts/{{ entry.path }}.html"><code class="postdate">{{ entry.date }}</code> {{ entry.title }} </a></li>
+  {% endfor %}
+</ul>
+    </main>
+    <footer>
+      <br>
+      <hr>
+      <p>No Copyright</p>
+      <p>Public Domain Mark 1.0</p>
+    </footer>
+  </body>
+</html>
+    "#;
+    let posthtml = r#"
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <meta name="description" content="Hole of ITY">
+    <meta name="keywords" content="blog, thoughts, experiences">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      html {
+        height: 100%;
+        font-size: 16px;
+        font-family: "ui-monospace", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace
+      }
+
+      body {
+        line-height: calc(16px * 1.618);
+        max-width: 80ch;
+        margin: 1rem auto;
+        color: #333;
+        padding: 0 2rem 2rem 2rem;
+        background: #fff;
+        
+      }
+
+      img,
+      video {
+        max-width: 100%;
+        margin: 0.5em 0;
+        border-radius: 8px
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        line-height: 1.25;
+        font-weight: normal;
+        color: #000
+      }
+
+      h1,
+      h2 {
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 0.1em
+      }
+
+      nav {
+        padding: 0.67em 0 calc(0.67em * 2) 0
+      }
+
+      a img {
+        transition: all 0.5s ease
+      }
+
+      a img:hover {
+        border-radius: 0px
+      }
+
+      a {
+        color: #000
+      }
+
+      a:visited {
+        color: #444
+      }
+
+      a:hover {
+        color: #000;
+        text-decoration: none
+      }
+
+      a:focus {
+        color: crimson
+      }
+
+      header,
+      footer {
+        font-size: 14px
+      }
+
+      nav a {
+        margin-right: 2ch;
+        color: #000
+      }
+
+      nav a:visited {
+        color: #000
+      }
+
+      hr {
+        box-sizing: content-box;
+        height: 0;
+        border: 0;
+        border-top: 1px solid #ddd
+      }
+
+      ul,
+      ol {
+        margin-block-start: 0.25em;
+        margin-block-end: 1em;
+        padding-inline-start: 2.5em
+      }
+
+      ul li::marker {
+        content: '- '
+      }
+
+      ul {
+        padding-inline-start: 1.5em
+      }
+
+      code {
+        background: #eff1f3;
+        color: #000;
+        padding: 2px 1ch;
+        border-radius: 6px;
+        font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+        font-size: 14px
+      }
+
+      pre code {
+        background: transparent;
+        display: block;
+        line-height: 1.25;
+        padding: 1.5em;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid #ddd
+      }
+
+      blockquote {
+        margin-inline-start: 20px;
+        padding-left: 20px;
+        border-left: 2px solid #ddd;
+        font-style: italic
+      }
+
+      table {
+        border-collapse: collapse;
+        max-width: 100%
+      }
+
+      table tr td,
+      table tr th {
+        padding: 0.3em 1ch
+      }
+
+      table tr td {
+        vertical-align: top
+      }
+
+      table tr th {
+        border-bottom: 1px solid #ddd;
+        color: #000;
+        font-weight: normal;
+        text-align: inherit
+      }
+
+      .postlink {
+        line-height: 1.25;
+        white-space: pre-line
+      }
+
+      .postdate {
+        white-space: nowrap;
+        vertical-align: baseline
+      }
+
+      @media(prefers-color-scheme:dark) {
+        body {
+          background-color: #101010;
+          color: #a0aaaf
+        }
+
+        nav a,
+        nav a:visited {
+          color: #d0dadf;
+        }
+
+        nav a:focus {
+          color: #101010
+        }
+
+        a {
+          color: #d0dadf
+        }
+
+        a:visited {
+          color: #808a8f
+        }
+
+        a:hover {
+          background-color: #202325a0;
+          color: #d0dadf
+        }
+
+        a:focus {
+          background-color: #d0dadf;
+          color: #101010
+        }
+
+        hr,
+        table tr th,
+        blockquote {
+          border-color: #808a8f50
+        }
+
+        code,
+        pre code {
+          background-color: transparent;
+          color: #a0aaaf;
+          border: 1px solid #808a8f50
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        table tr th {
+          color: #d0dadf
+        }
+
+        h1,
+        h2 {
+          border-color: #808a8f50
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="/">ity.moe</a>
+        <a href="/posts/">posts</a>
+        <a href="/projects.html">code</a>
+      </nav>
+    </header>
+    <main>
+     <article>
+     {{ content }}
+     </article>
+    </main>
+    <footer>
+      <br>
+      <hr>
+      <p>No Copyright</p>
+      <p>Public Domain Mark 1.0</p>
+    </footer>
+  </body>
+</html>
+        "#;
+        
+    let mut listfile = match File::create(".terb/template/list.liquid") {
+        Ok(file) => file,
+        Err(error) => {
+            println!("Error creating file: {}", error);
+            return;
+        }
+    };
+    let mut postfile = match File::create(".terb/template/post.liquid") {
+        Ok(file) => file,
+        Err(error) => {
+            println!("Error creating file: {}", error);
+            return;
+        }
+    };
+
+    match listfile.write_all(listhtml.as_bytes()) {
+        Ok(_) => println!("File created successfully"),
+        Err(error) => println!("Error writing to file: {}", error),
+    }
+        match postfile.write_all(posthtml.as_bytes()) {
+        Ok(_) => println!("File created successfully"),
+        Err(error) => println!("Error writing to file: {}", error),
+    }
 }

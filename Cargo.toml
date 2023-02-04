@@ -13,12 +13,6 @@ debug = false
 codegen-units = 1
 lto = true
 
-[profile.dev]
-opt-level = "z"
-debug = false
-codegen-units = 1
-lto = true
-
 [dependencies]
 liquid = "0.26.0"
 pulldown-cmark = "0.9.2"

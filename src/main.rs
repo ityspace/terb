@@ -377,7 +377,6 @@ fn generate_template() {
         color: #333;
         padding: 0 2rem 2rem 2rem;
         background: #fff;
-        
       }
 
       img,
@@ -527,6 +526,22 @@ fn generate_template() {
         vertical-align: baseline
       }
 
+      fieldset {
+        border-radius: 6px;
+        border: #333 1px solid;
+        padding: 30px 10px 10px;
+        position: relative;
+      }
+
+      fieldset legend {
+        background: #dce6f5;
+        left: 0;
+        margin: 0;
+        padding: 2px 4px;
+        position: absolute;
+        top: 0;
+      }
+
       @media(prefers-color-scheme:dark) {
         body {
           background-color: #101010;
@@ -586,6 +601,14 @@ fn generate_template() {
         h1,
         h2 {
           border-color: #808a8f50
+        }
+
+        fieldset {
+          border: #a0aaaf 1px solid;
+        }
+
+        fieldset legend {
+          background: #57616f;
         }
       }
     </style>
@@ -624,7 +647,7 @@ fn generate_template() {
     <meta name="description" content="Hole of ITY">
     <meta name="keywords" content="blog, thoughts, experiences">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+     <style>
       html {
         height: 100%;
         font-size: 16px;
@@ -638,7 +661,6 @@ fn generate_template() {
         color: #333;
         padding: 0 2rem 2rem 2rem;
         background: #fff;
-        
       }
 
       img,
@@ -788,6 +810,22 @@ fn generate_template() {
         vertical-align: baseline
       }
 
+      fieldset {
+        border-radius: 6px;
+        border: #333 1px solid;
+        padding: 30px 10px 10px;
+        position: relative;
+      }
+
+      fieldset legend {
+        background: #dce6f5;
+        left: 0;
+        margin: 0;
+        padding: 2px 4px;
+        position: absolute;
+        top: 0;
+      }
+
       @media(prefers-color-scheme:dark) {
         body {
           background-color: #101010;
@@ -847,6 +885,14 @@ fn generate_template() {
         h1,
         h2 {
           border-color: #808a8f50
+        }
+
+        fieldset {
+          border: #a0aaaf 1px solid;
+        }
+
+        fieldset legend {
+          background: #57616f;
         }
       }
     </style>

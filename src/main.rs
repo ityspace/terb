@@ -602,7 +602,7 @@ fn generate_template() {
  <h1> Article list </h1>
  <ul>
   {% for entry in list %}
-    <li><code class="postdate">{{ entry.date }}</code><a class="postlink" href="/posts/{{ entry.path }}.html"> {{ entry.title }} </a></li>
+    <li><a class="postlink" href="/posts/{{ entry.path }}.html"><code class="postdate">{{ entry.date }}</code> {{ entry.title }} </a></li>
   {% endfor %}
 </ul>
     </main>

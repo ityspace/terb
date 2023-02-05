@@ -523,6 +523,7 @@ fn generate_template() {
 
       .postdate {
         white-space: nowrap;
+        padding: 0;
         vertical-align: baseline
       }
 
@@ -593,8 +594,8 @@ fn generate_template() {
     <header>
       <nav>
         <a href="/">ity.moe</a>
-        <a href="/posts/">posts</a>
-        <a href="/projects.html">code</a>
+        <a href="/posts.html">posts</a>
+        <a href="/more.html">more</a>
       </nav>
     </header>
     <main>
@@ -783,6 +784,7 @@ fn generate_template() {
 
       .postdate {
         white-space: nowrap;
+        padding: 0;
         vertical-align: baseline
       }
 
@@ -853,8 +855,8 @@ fn generate_template() {
     <header>
       <nav>
         <a href="/">ity.moe</a>
-        <a href="/posts/">posts</a>
-        <a href="/projects.html">code</a>
+        <a href="/posts.html">posts</a>
+        <a href="/more.html">more</a>
       </nav>
     </header>
     <main>

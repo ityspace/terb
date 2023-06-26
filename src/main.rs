@@ -21,7 +21,7 @@ fn main() {
         println!("-G Generate Blog");
         println!("-S Run Web Server");
         println!("-P Push to Git repository");
-        println!("Version 0.1.0");
+        println!("Version 0.1.1");
         return;
     }
     let command = &args[1];
@@ -616,9 +616,7 @@ fn generate_template() {
   <body>
     <header>
       <nav>
-        <a href="/">ity.moe</a>
-        <a href="/posts.html">posts</a>
-        <a href="/more.html">more</a>
+        <a href="/">Blog</a>
       </nav>
     </header>
     <main>
@@ -900,15 +898,14 @@ fn generate_template() {
   <body>
     <header>
       <nav>
-        <a href="/">ity.moe</a>
-        <a href="/posts.html">posts</a>
-        <a href="/more.html">more</a>
+        <a href="/">Blog</a>
       </nav>
     </header>
     <main>
      <article>
      {{ content }}
      </article>
+     <a href="/">Return home</a>
     </main>
     <footer>
       <br>

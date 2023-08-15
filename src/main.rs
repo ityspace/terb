@@ -8,7 +8,6 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
-use std::process::Command;
 use std::{fs, io};
 use toml;
 
@@ -20,8 +19,7 @@ fn main() {
         println!("-I Init Blog");
         println!("-G Generate Blog");
         println!("-S Run Web Server");
-        println!("-P Push to Git repository");
-        println!("Version 0.1.1");
+        println!("Version 0.1.4");
         return;
     }
     let command = &args[1];
@@ -62,19 +60,13 @@ fn main() {
                 }
             }
             let mut config = toml::value::Table::new();
-            let keys = [
-                "blogtitle",
-                "description",
-                "author",
-                "list_path",
-                "git_repo",
-            ];
+            let keys = ["blogtitle", "description", "author", "list_path"];
             for key in &keys {
                 let mut config_string = String::new();
                 println!("Enter {}:", key);
                 io::stdin().read_line(&mut config_string).unwrap();
                 let value = config_string.trim();
-                if key == &"git_repo" {
+                if key == &"language" {
                     let repos: Vec<String> =
                         value.split(",").map(|s| s.trim().to_string()).collect();
                     config.insert(
@@ -90,65 +82,8 @@ fn main() {
             let config_string = toml::to_string(&toml::Value::Table(config)).unwrap();
             let mut file = File::create(".terb/config.toml").unwrap();
             file.write_all(config_string.as_bytes()).unwrap();
-            println!("Do you want to initialize out directory as a git project? (Y/n) Press enter to confirm");
-            let mut input = String::new();
-            std::io::stdin().read_line(&mut input).unwrap();
-            let input = input.trim();
-            if input == "Y" || input == "" {
-                Command::new("git")
-                    .arg("init")
-                    .current_dir("out")
-                    .output()
-                    .expect("Failed to initialize git repository.");
-                Command::new("git")
-                    .arg("checkout")
-                    .arg("-b")
-                    .arg("main")
-                    .current_dir("out")
-                    .output()
-                    .expect("Failed to create branch main and switch to it.");
-            }
             generate_template();
             println!("Finish!");
-        }
-        "-P" => {
-            let config: toml::Value =
-                toml::from_str(fs::read_to_string(".terb/config.toml").unwrap().as_str()).unwrap();
-            let git_repo = config.get("git_repo").unwrap().as_array().unwrap();
-
-            for repo in git_repo {
-                let repo_url = repo.as_str().unwrap();
-
-                let output = Command::new("git")
-                    .current_dir("out")
-                    .args(&["remote", "add", "origin", repo_url])
-                    .output()
-                    .expect("Failed to add remote repository.");
-
-                if output.status.success() {
-                    Command::new("git")
-                        .current_dir("out")
-                        .args(&["add", "."])
-                        .output()
-                        .expect("Failed to add files.");
-
-                    let commit_output = Command::new("git")
-                        .current_dir("out")
-                        .args(&["commit", "-m", "Initial commit"])
-                        .output()
-                        .expect("Failed to commit files.");
-
-                    if commit_output.status.success() {
-                        Command::new("git")
-                            .current_dir("out")
-                            .args(&["push", "-u", "origin", "main", "--force"])
-                            .output()
-                            .expect("Failed to push to remote repository.");
-                    } else {
-                        println!("Nothing to commit.");
-                    }
-                }
-            }
         }
         _ => println!("Invalid command"),
     }
@@ -357,566 +292,417 @@ fn generate_template() {
     let listhtml = r#"
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>{{ blogtitle }}</title>
-    <meta name="description" content="{{ description }}">
-    <meta name="keywords" content="blog, thoughts, experiences">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      html {
-        height: 100%;
-        font-size: 16px;
-        font-family: "ui-monospace", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>{{ blogtitle }}</title>
+  <meta name="description" content="{{ description }}">
+  <meta name="keywords" content="blog, thoughts, experiences">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+  :root {
+    --default-text-color: #333;
+    --default-background-color: #fff;
+    --title-color: #000;
+    --border-color:#ddd;
+    --link-color:#000;
+    --visit-color:#444;
+    --focus-color:#75b7da;
+    --code-background-color: #eff1f3;
+    --code-color: #000;
+    --span-color:#708090;
+  }
 
-      body {
-        line-height: calc(16px * 1.618);
-        max-width: 80ch;
-        margin: 1rem auto;
-        color: #333;
-        padding: 0 2rem 2rem 2rem;
-        background: #fff;
-      }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --default-text-color: #a0aaaf;
+      --default-background-color: #101010;
+      --title-color: #d0dadf;  
+      --border-color:#808a8f50;
+      --link-color:#000;
+      --visit-color:#444;
+      --focus-color:#c2d5f3;
+      --code-background-color: transparent;
+      --code-color: #a0aaaf;
+      --span-color:#a0aaaf;
+    }
+  }
+  
+  html {
+    height: 100%;
+  }
 
-      img,
-      video {
-        max-width: 100%;
-        margin: 0.5em 0;
-        border-radius: 8px
-      }
+  body {
+    line-height: calc(16px * 1.618);
+    font-size: 16px;
+    max-width: 80ch;
+    margin: 1rem auto;
+    color: var(--default-text-color);
+    padding: 0 2rem 2rem 2rem;
+    background: var(--default-background-color);
+    font-family: ui-sans-serif,system-ui;
+    word-break: break-all;
+  }
 
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
-        line-height: 1.25;
-        font-weight: normal;
-        color: #000
-      }
+  img,
+  video {
+    max-width: 100%;
+    margin: 0.5em 0;
+    border-radius: 8px
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.25;
+    font-weight: normal;
+    color: var(--title-color)
+  }
+article h1,
+  article h2 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.1em
+  }
 
-      h1,
-      h2 {
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 0.1em
-      }
+  nav {
+    padding: 0.67em 0 calc(0.67em * 2) 0
+  }
+  nav h1 {
+    font-size: xx-large;
+  }
+  a img {
+    transition: all 0.5s ease
+  }
 
-      nav {
-        padding: 0.67em 0 calc(0.67em * 2) 0
-      }
+  a img:hover {
+    border-radius: 0px
+  }
 
-      a img {
-        transition: all 0.5s ease
-      }
+  a {
+    color: var(--link-color)
+  }
 
-      a img:hover {
-        border-radius: 0px
-      }
+  a:visited {
+    color: var(--visit-color)
+  }
 
-      a {
-        color: #000
-      }
+  a:hover {
+    color: var(--link-color);
+    text-decoration: none
+  }
 
-      a:visited {
-        color: #444
-      }
+  a:focus {
+    color: var(--focus-color)
+  }
 
-      a:hover {
-        color: #000;
-        text-decoration: none
-      }
+  header,
+  footer {
+    font-size: 14px
+  }
 
-      a:focus {
-        color: crimson
-      }
+  hr {
+    box-sizing: content-box;
+    height: 0;
+    border: 0;
+    border-top: 1px solid var(--border-color)
+  }
 
-      header,
-      footer {
-        font-size: 14px
-      }
+  ul,
+  ol {
+    margin-block-start: 0.25em;
+    margin-block-end: 1em;
+    padding-inline-start: 2.5em
+  }
 
-      nav a {
-        margin-right: 2ch;
-        color: #000
-      }
+  ul li::marker {
+    content: '- '
+  }
 
-      nav a:visited {
-        color: #000
-      }
+  ul {
+    padding-inline-start: 1.5em
+  }
 
-      hr {
-        box-sizing: content-box;
-        height: 0;
-        border: 0;
-        border-top: 1px solid #ddd
-      }
+  code {
+    background: var(--code-background-color);
+    color: var(--code-color);
+    padding: 2px 1ch;
+    border-radius: 6px;
+    font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+    font-size: 14px
+  }
 
-      ul,
-      ol {
-        margin-block-start: 0.25em;
-        margin-block-end: 1em;
-        padding-inline-start: 2.5em
-      }
+  pre code {
+    background: transparent;
+    display: block;
+    line-height: 1.25;
+    padding: 1.5em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--border-color)
+  }
 
-      ul li::marker {
-        content: '- '
-      }
+  blockquote {
+    margin-inline-start: 20px;
+    padding-left: 20px;
+    border-left: 2px solid var(--border-color);
+    font-style: italic
+  }
 
-      ul {
-        padding-inline-start: 1.5em
-      }
+  table {
+    border-collapse: collapse;
+    max-width: 100%
+  }
 
-      code {
-        background: #eff1f3;
-        color: #000;
-        padding: 2px 1ch;
-        border-radius: 6px;
-        font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
-        font-size: 14px
-      }
+  table tr td,
+  table tr th {
+    padding: 0.3em 1ch
+  }
 
-      pre code {
-        background: transparent;
-        display: block;
-        line-height: 1.25;
-        padding: 1.5em;
-        overflow-x: auto;
-        overflow-y: hidden;
-        border: 1px solid #ddd
-      }
+  table tr td {
+    vertical-align: top
+  }
 
-      blockquote {
-        margin-inline-start: 20px;
-        padding-left: 20px;
-        border-left: 2px solid #ddd;
-        font-style: italic
-      }
-
-      table {
-        border-collapse: collapse;
-        max-width: 100%
-      }
-
-      table tr td,
-      table tr th {
-        padding: 0.3em 1ch
-      }
-
-      table tr td {
-        vertical-align: top
-      }
-
-      table tr th {
-        border-bottom: 1px solid #ddd;
-        color: #000;
-        font-weight: normal;
-        text-align: inherit
-      }
-
-      .postlink {
-        line-height: 1.25;
-        white-space: pre-line
-      }
-
-      .postdate {
-        white-space: nowrap;
-        padding: 0;
-        vertical-align: baseline
-      }
-
-      fieldset {
-        border-radius: 6px;
-        border: #333 1px solid;
-        padding: 30px 10px 10px;
-        position: relative;
-      }
-
-      fieldset legend {
-        background: #dce6f5;
-        left: 0;
-        margin: 0;
-        padding: 2px 4px;
-        position: absolute;
-        top: 0;
-      }
-
-      @media(prefers-color-scheme:dark) {
-        body {
-          background-color: #101010;
-          color: #a0aaaf
-        }
-
-        nav a,
-        nav a:visited {
-          color: #d0dadf;
-        }
-
-        nav a:focus {
-          color: #101010
-        }
-
-        a {
-          color: #d0dadf
-        }
-
-        a:visited {
-          color: #808a8f
-        }
-
-        a:hover {
-          background-color: #202325a0;
-          color: #d0dadf
-        }
-
-        a:focus {
-          background-color: #d0dadf;
-          color: #101010
-        }
-
-        hr,
-        table tr th,
-        blockquote {
-          border-color: #808a8f50
-        }
-
-        code,
-        pre code {
-          background-color: transparent;
-          color: #a0aaaf;
-          border: 1px solid #808a8f50
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6,
-        table tr th {
-          color: #d0dadf
-        }
-
-        h1,
-        h2 {
-          border-color: #808a8f50
-        }
-
-        fieldset {
-          border: #a0aaaf 1px solid;
-        }
-
-        fieldset legend {
-          background: #57616f;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <nav>
-        <a href="/">Blog</a>
-      </nav>
-    </header>
-    <main>
- <h1> Article list </h1>
- <ul>
-  {% for entry in list %}
-    <li><a class="postlink" href="/posts/{{ entry.path }}.html"><code class="postdate">{{ entry.date }}</code> {{ entry.title }} </a></li>
-  {% endfor %}
-</ul>
-    </main>
+  table tr th {
+    border-bottom: 1px solid var(--border-color);
+    color: var();
+    font-weight: normal;
+    text-align: inherit
+  }
+  footer {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    margin: 100px 0;
+  }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <h1>{{ blogtitle }}</h1>
+    </nav>
+  </header>
+  <main>
+<h1>Articles</h1>
+{% for entry in list %}
+<div class="article-link"><h2><a href="/posts/{{ entry.path }}.html">{{ entry.title }}</a></h2><span>{{ entry.date }}</span></div>
+{% endfor %}
+</main>
     <footer>
-      <br>
-      <hr>
-      <p>No Copyright</p>
-      <p>Public Domain Mark 1.0</p>
+      <p>CC BY-NC-SA 4.0</p>
+      <div><svg viewBox="0 0 605 605" width="50px" height="50px" fill="currentColor">
+        <path d="M235 36c0 2 4.9 10.7 31.6 56.6 14.7 25.3 29.4 50.9 32.6 57.1l5.9 11.2-3.8 2.4c-2.1 1.3-20.9 12.3-41.8 24.4-20.9 12.2-45.8 26.6-55.4 32.2-9.6 5.6-17.5 10-17.7 9.9-.1-.2-9.9-17-21.7-37.3-31.3-54-47.3-80.2-51.5-83.9-1.3-1.1-2.2-1.4-2.2-.7 0 2.1 4.4 10.1 29.3 52.8 31.6 54.3 37 64 36.4 65.8-1.5 3.8-20.5 5-90.7 6.1-25.6.4-47.4 1-48.5 1.5-1.1.4 10.9.8 26.6.8 15.7.1 48.9.4 73.7.8l45.2.6v139.4l-27.7.6c-15.3.4-42.4.8-60.3.8-57.6.2-65.7 1.3-16.5 2.2 75.6 1.4 96.8 2.8 98.2 6.3.6 1.7-6.3 14.4-37.3 67.6-13.4 23-25.3 43.7-26.4 45.9-2.5 4.8-2.2 7 .5 4.3 4.3-4.4 26.6-40.8 55.5-90.9 9.5-16.5 17.3-30.1 17.4-30.2.1-.1 17.7 10 39.1 22.5 21.5 12.5 47.4 27.5 57.5 33.4 10.2 5.9 19.3 11.3 20.4 12.1 1.7 1.3 1.5 2-4.9 13.8-3.8 6.8-15.4 27-25.8 44.9-34.1 58.3-37.7 64.6-37.7 67.5 0 .8.4 1.5.9 1.5 1 0 11.4-16.4 28.1-44.5 25.2-42.4 42.3-70.6 43.8-72.5 1.6-2 2-1.5 11.4 13.7 5.3 8.7 17.6 29.3 27.4 45.8 20.8 35.3 32.9 54.9 34.9 56.5 1.2 1 1.5.8 1.5-1.1 0-2.6-4.1-10-29.6-53.5-20.5-35-33.9-58.4-37.7-66.1l-2.6-5.1 12.7-7.5c7-4.1 32.7-19 57.2-33.2 24.5-14.2 45.5-26.4 46.6-27.2 2-1.3 2.7-.3 19 27.9 28.7 49.9 53 89.6 56.7 92.7 2.5 2 3.1.7 1.2-2.9-.9-1.7-12.5-21.9-25.9-44.8-26.7-46-39.6-68.7-39.6-70 0-1.7 5.4-3.3 14.8-4.2 8.4-.8 72.4-2.6 113.2-3.2l13.5-.1-13.5-.8c-7.4-.3-27.7-.7-45.1-.8-17.4 0-44.5-.4-60.2-.8l-28.7-.6V236.3l45.8-.6c25.1-.4 58.3-.7 73.7-.8 15.4 0 27.1-.4 26-.8-1.1-.5-22.9-1.1-48.5-1.5-66.9-1-88.5-2.3-90.5-5.6-1-1.6 3.6-9.9 41.6-75.1 22.5-38.7 25.3-43.8 24.5-44.6-2.2-2.3-18.3 23.2-56.1 88.7-10.3 17.9-18.9 32.9-19.2 33.3-.3.4-2.3-.3-4.6-1.6-7.7-4.3-86-49.9-100.5-58.4l-14.2-8.4 1.6-3.2c4.1-7.9 18-32.3 31.7-55.7 33.9-57.6 38.9-67 35.8-67-1.3 0-12.2 17.4-34.8 55.5-21.1 35.5-34.7 58-36.9 61-1.3 1.7-1.6 1.8-2.5.5-.5-.8-10.9-18.2-23.1-38.5C244.3 45.6 237.7 35 236 35c-.5 0-1 .5-1 1zm88.3 136.8c18.3 10.9 63.3 36.8 86.7 49.9l19.5 11v144.7L380 406.7c-27.2 15.5-54.3 30.8-60.3 33.8l-10.7 5.6-13.3-7c-7.2-3.9-34.3-19.2-60.2-34l-47-26.8-.3-72-.2-72 59.7-34.6c32.9-19 60.4-34.6 61.1-34.6.7-.1 7.3 3.4 14.5 7.7z"></path>
+      </svg></div>
     </footer>
   </body>
 </html>
-    "#;
+  "#;
     let posthtml = r#"
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>{{ title }}</title>
-    <meta name="description" content="Hole of ITY">
-    <meta name="keywords" content="blog, thoughts, experiences">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <style>
-      html {
-        height: 100%;
-        font-size: 16px;
-        font-family: "ui-monospace", "SFMono-Regular", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ title }}">
+  <meta name="keywords" content="{{ title }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <style>
+   :root {
+    --default-text-color: #333;
+    --default-background-color: #fff;
+    --title-color: #000;
+    --border-color:#ddd;
+    --link-color:#000;
+    --visit-color:#444;
+    --focus-color:#75b7da;
+    --code-background-color: #eff1f3;
+    --code-color: #000;
+    --span-color:#708090;
+  }
 
-      body {
-        line-height: calc(16px * 1.618);
-        max-width: 80ch;
-        margin: 1rem auto;
-        color: #333;
-        padding: 0 2rem 2rem 2rem;
-        background: #fff;
-      }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --default-text-color: #a0aaaf;
+      --default-background-color: #101010;
+      --title-color: #d0dadf;  
+      --border-color:#808a8f50;
+      --link-color:#000;
+      --visit-color:#444;
+      --focus-color:#c2d5f3;
+      --code-background-color: transparent;
+      --code-color: #a0aaaf;
+      --span-color:#a0aaaf;
+    }
+  }
+  
+  html {
+    height: 100%;
+  }
 
-      img,
-      video {
-        max-width: 100%;
-        margin: 0.5em 0;
-        border-radius: 8px
-      }
+  body {
+    line-height: calc(16px * 1.618);
+    font-size: 16px;
+    max-width: 80ch;
+    margin: 1rem auto;
+    color: var(--default-text-color);
+    padding: 0 2rem 2rem 2rem;
+    background: var(--default-background-color);
+    font-family: ui-sans-serif,system-ui;
+    word-break: break-all;
+  }
 
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
-        line-height: 1.25;
-        font-weight: normal;
-        color: #000
-      }
+  img,
+  video {
+    max-width: 100%;
+    margin: 0.5em 0;
+    border-radius: 8px
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.25;
+    font-weight: normal;
+    color: var(--title-color)
+  }
+article h1,
+  article h2 {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.1em
+  }
 
-      h1,
-      h2 {
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 0.1em
-      }
+  nav {
+    padding: 0.67em 0 calc(0.67em * 2) 0
+  }
+  nav h1 {
+    font-size: xx-large;
+  }
+  a img {
+    transition: all 0.5s ease
+  }
 
-      nav {
-        padding: 0.67em 0 calc(0.67em * 2) 0
-      }
+  a img:hover {
+    border-radius: 0px
+  }
 
-      a img {
-        transition: all 0.5s ease
-      }
+  a {
+    color: var(--link-color)
+  }
 
-      a img:hover {
-        border-radius: 0px
-      }
+  a:visited {
+    color: var(--visit-color)
+  }
 
-      a {
-        color: #000
-      }
+  a:hover {
+    color: var(--link-color);
+    text-decoration: none
+  }
 
-      a:visited {
-        color: #444
-      }
+  a:focus {
+    color: var(--focus-color)
+  }
 
-      a:hover {
-        color: #000;
-        text-decoration: none
-      }
+  header,
+  footer {
+    font-size: 14px
+  }
 
-      a:focus {
-        color: crimson
-      }
+  hr {
+    box-sizing: content-box;
+    height: 0;
+    border: 0;
+    border-top: 1px solid var(--border-color)
+  }
 
-      header,
-      footer {
-        font-size: 14px
-      }
+  ul,
+  ol {
+    margin-block-start: 0.25em;
+    margin-block-end: 1em;
+    padding-inline-start: 2.5em
+  }
 
-      nav a {
-        margin-right: 2ch;
-        color: #000
-      }
+  ul li::marker {
+    content: '- '
+  }
 
-      nav a:visited {
-        color: #000
-      }
+  ul {
+    padding-inline-start: 1.5em
+  }
 
-      hr {
-        box-sizing: content-box;
-        height: 0;
-        border: 0;
-        border-top: 1px solid #ddd
-      }
+  code {
+    background: var(--code-background-color);
+    color: var(--code-color);
+    padding: 2px 1ch;
+    border-radius: 6px;
+    font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
+    font-size: 14px
+  }
 
-      ul,
-      ol {
-        margin-block-start: 0.25em;
-        margin-block-end: 1em;
-        padding-inline-start: 2.5em
-      }
+  pre code {
+    background: transparent;
+    display: block;
+    line-height: 1.25;
+    padding: 1.5em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--border-color)
+  }
 
-      ul li::marker {
-        content: '- '
-      }
+  blockquote {
+    margin-inline-start: 20px;
+    padding-left: 20px;
+    border-left: 2px solid var(--border-color);
+    font-style: italic
+  }
 
-      ul {
-        padding-inline-start: 1.5em
-      }
+  table {
+    border-collapse: collapse;
+    max-width: 100%
+  }
 
-      code {
-        background: #eff1f3;
-        color: #000;
-        padding: 2px 1ch;
-        border-radius: 6px;
-        font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
-        font-size: 14px
-      }
+  table tr td,
+  table tr th {
+    padding: 0.3em 1ch
+  }
 
-      pre code {
-        background: transparent;
-        display: block;
-        line-height: 1.25;
-        padding: 1.5em;
-        overflow-x: auto;
-        overflow-y: hidden;
-        border: 1px solid #ddd
-      }
+  table tr td {
+    vertical-align: top
+  }
 
-      blockquote {
-        margin-inline-start: 20px;
-        padding-left: 20px;
-        border-left: 2px solid #ddd;
-        font-style: italic
-      }
-
-      table {
-        border-collapse: collapse;
-        max-width: 100%
-      }
-
-      table tr td,
-      table tr th {
-        padding: 0.3em 1ch
-      }
-
-      table tr td {
-        vertical-align: top
-      }
-
-      table tr th {
-        border-bottom: 1px solid #ddd;
-        color: #000;
-        font-weight: normal;
-        text-align: inherit
-      }
-
-      .postlink {
-        line-height: 1.25;
-        white-space: pre-line
-      }
-
-      .postdate {
-        white-space: nowrap;
-        padding: 0;
-        vertical-align: baseline
-      }
-
-      fieldset {
-        border-radius: 6px;
-        border: #333 1px solid;
-        padding: 30px 10px 10px;
-        position: relative;
-      }
-
-      fieldset legend {
-        background: #dce6f5;
-        left: 0;
-        margin: 0;
-        padding: 2px 4px;
-        position: absolute;
-        top: 0;
-      }
-
-      @media(prefers-color-scheme:dark) {
-        body {
-          background-color: #101010;
-          color: #a0aaaf
-        }
-
-        nav a,
-        nav a:visited {
-          color: #d0dadf;
-        }
-
-        nav a:focus {
-          color: #101010
-        }
-
-        a {
-          color: #d0dadf
-        }
-
-        a:visited {
-          color: #808a8f
-        }
-
-        a:hover {
-          background-color: #202325a0;
-          color: #d0dadf
-        }
-
-        a:focus {
-          background-color: #d0dadf;
-          color: #101010
-        }
-
-        hr,
-        table tr th,
-        blockquote {
-          border-color: #808a8f50
-        }
-
-        code,
-        pre code {
-          background-color: transparent;
-          color: #a0aaaf;
-          border: 1px solid #808a8f50
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6,
-        table tr th {
-          color: #d0dadf
-        }
-
-        h1,
-        h2 {
-          border-color: #808a8f50
-        }
-
-        fieldset {
-          border: #a0aaaf 1px solid;
-        }
-
-        fieldset legend {
-          background: #57616f;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <nav>
-        <a href="/">Blog</a>
-      </nav>
-    </header>
-    <main>
-     <article>
-     {{ content }}
-     </article>
-     <a href="/">Return home</a>
-    </main>
-    <footer>
-      <br>
-      <hr>
-      <p>No Copyright</p>
-      <p>Public Domain Mark 1.0</p>
-    </footer>
-  </body>
+  table tr th {
+    border-bottom: 1px solid var(--border-color);
+    color: var();
+    font-weight: normal;
+    text-align: inherit
+  }
+  footer {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    margin: 100px 0;
+  }
+  </style>
+</head>
+<body>
+  <main>
+   <article>
+   {{ content }}
+   </article>
+   <a href="/">Return home</a>
+  </main>
+  <footer>
+  <p>CC BY-NC-SA 4.0</p>
+  <div><svg viewBox="0 0 605 605" width="50px" height="50px" fill="currentColor">
+    <path d="M235 36c0 2 4.9 10.7 31.6 56.6 14.7 25.3 29.4 50.9 32.6 57.1l5.9 11.2-3.8 2.4c-2.1 1.3-20.9 12.3-41.8 24.4-20.9 12.2-45.8 26.6-55.4 32.2-9.6 5.6-17.5 10-17.7 9.9-.1-.2-9.9-17-21.7-37.3-31.3-54-47.3-80.2-51.5-83.9-1.3-1.1-2.2-1.4-2.2-.7 0 2.1 4.4 10.1 29.3 52.8 31.6 54.3 37 64 36.4 65.8-1.5 3.8-20.5 5-90.7 6.1-25.6.4-47.4 1-48.5 1.5-1.1.4 10.9.8 26.6.8 15.7.1 48.9.4 73.7.8l45.2.6v139.4l-27.7.6c-15.3.4-42.4.8-60.3.8-57.6.2-65.7 1.3-16.5 2.2 75.6 1.4 96.8 2.8 98.2 6.3.6 1.7-6.3 14.4-37.3 67.6-13.4 23-25.3 43.7-26.4 45.9-2.5 4.8-2.2 7 .5 4.3 4.3-4.4 26.6-40.8 55.5-90.9 9.5-16.5 17.3-30.1 17.4-30.2.1-.1 17.7 10 39.1 22.5 21.5 12.5 47.4 27.5 57.5 33.4 10.2 5.9 19.3 11.3 20.4 12.1 1.7 1.3 1.5 2-4.9 13.8-3.8 6.8-15.4 27-25.8 44.9-34.1 58.3-37.7 64.6-37.7 67.5 0 .8.4 1.5.9 1.5 1 0 11.4-16.4 28.1-44.5 25.2-42.4 42.3-70.6 43.8-72.5 1.6-2 2-1.5 11.4 13.7 5.3 8.7 17.6 29.3 27.4 45.8 20.8 35.3 32.9 54.9 34.9 56.5 1.2 1 1.5.8 1.5-1.1 0-2.6-4.1-10-29.6-53.5-20.5-35-33.9-58.4-37.7-66.1l-2.6-5.1 12.7-7.5c7-4.1 32.7-19 57.2-33.2 24.5-14.2 45.5-26.4 46.6-27.2 2-1.3 2.7-.3 19 27.9 28.7 49.9 53 89.6 56.7 92.7 2.5 2 3.1.7 1.2-2.9-.9-1.7-12.5-21.9-25.9-44.8-26.7-46-39.6-68.7-39.6-70 0-1.7 5.4-3.3 14.8-4.2 8.4-.8 72.4-2.6 113.2-3.2l13.5-.1-13.5-.8c-7.4-.3-27.7-.7-45.1-.8-17.4 0-44.5-.4-60.2-.8l-28.7-.6V236.3l45.8-.6c25.1-.4 58.3-.7 73.7-.8 15.4 0 27.1-.4 26-.8-1.1-.5-22.9-1.1-48.5-1.5-66.9-1-88.5-2.3-90.5-5.6-1-1.6 3.6-9.9 41.6-75.1 22.5-38.7 25.3-43.8 24.5-44.6-2.2-2.3-18.3 23.2-56.1 88.7-10.3 17.9-18.9 32.9-19.2 33.3-.3.4-2.3-.3-4.6-1.6-7.7-4.3-86-49.9-100.5-58.4l-14.2-8.4 1.6-3.2c4.1-7.9 18-32.3 31.7-55.7 33.9-57.6 38.9-67 35.8-67-1.3 0-12.2 17.4-34.8 55.5-21.1 35.5-34.7 58-36.9 61-1.3 1.7-1.6 1.8-2.5.5-.5-.8-10.9-18.2-23.1-38.5C244.3 45.6 237.7 35 236 35c-.5 0-1 .5-1 1zm88.3 136.8c18.3 10.9 63.3 36.8 86.7 49.9l19.5 11v144.7L380 406.7c-27.2 15.5-54.3 30.8-60.3 33.8l-10.7 5.6-13.3-7c-7.2-3.9-34.3-19.2-60.2-34l-47-26.8-.3-72-.2-72 59.7-34.6c32.9-19 60.4-34.6 61.1-34.6.7-.1 7.3 3.4 14.5 7.7z"></path>
+  </svg></div>
+  </footer>
+</body>
 </html>
-        "#;
-        
+      "#;
+
     let mut listfile = match File::create(".terb/template/list.liquid") {
         Ok(file) => file,
         Err(error) => {
@@ -933,11 +719,11 @@ fn generate_template() {
     };
 
     match listfile.write_all(listhtml.as_bytes()) {
-        Ok(_) => println!("File created successfully"),
+        Ok(_) => println!("List Template Created"),
         Err(error) => println!("Error writing to file: {}", error),
     }
-        match postfile.write_all(posthtml.as_bytes()) {
-        Ok(_) => println!("File created successfully"),
+    match postfile.write_all(posthtml.as_bytes()) {
+        Ok(_) => println!("Post Template Created"),
         Err(error) => println!("Error writing to file: {}", error),
     }
 }

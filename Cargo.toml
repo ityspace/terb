@@ -3,7 +3,7 @@ name = "terb"
 description = "A blog generator on terminal"
 readme = "README.md"
 license = "GPL3"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
 authors = ["ity <ity@keemail.me>"]
 
@@ -14,7 +14,7 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-liquid = "0.26.0"
-pulldown-cmark = "0.9.2"
-serde_json = "1.0.91"
-toml = "0.5.11"
+liquid = "0.26.4"
+pulldown-cmark = "0.9.3"
+serde_json = "1.0.104"
+toml = "0.7.6"

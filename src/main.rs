@@ -396,6 +396,9 @@ article h1,
     color: var(--focus-color)
   }
 
+  h2 a {
+        color: var(--title-color);
+  }
   header,
   footer {
     font-size: 14px

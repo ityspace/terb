@@ -486,7 +486,6 @@ article h1,
   }
   .article-link h2 {
     margin-bottom: 10px;
-    font-size: 2em;
   }
   </style>
 </head>

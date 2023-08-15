@@ -683,7 +683,7 @@ article h1,
     display: flex;
     justify-content: space-between;
     flex-direction: row;
-    margin: 3.6 0;
+    margin: 3.6rem 0;
   }
   </style>
 </head>

@@ -475,6 +475,19 @@ article h1,
     flex-direction: row;
     margin: 100px 0;
   }
+  .article-link {
+    margin:3.6rem 0;
+  }
+  .article-link a {
+    text-decoration: none;
+  }
+  .article-link span{
+    color: var(--span-color);
+  }
+  .article-link h2 {
+    margin-bottom: 10px;
+    font-size: 2em;
+  }
   </style>
 </head>
 <body>

@@ -306,7 +306,6 @@ fn generate_template() {
     --border-color:#ddd;
     --link-color:#000;
     --visit-color:#444;
-    --focus-color:#75b7da;
     --code-background-color: #eff1f3;
     --code-color: #000;
     --span-color:#708090;
@@ -319,8 +318,7 @@ fn generate_template() {
       --title-color: #d0dadf;  
       --border-color:#808a8f50;
       --link-color:#000;
-      --visit-color:#444;
-      --focus-color:#c2d5f3;
+      --visit-color:#aoaaaf;
       --code-background-color: transparent;
       --code-color: #a0aaaf;
       --span-color:#a0aaaf;
@@ -391,14 +389,7 @@ article h1,
     color: var(--link-color);
     text-decoration: none
   }
-
-  a:focus {
-    color: var(--focus-color)
-  }
-
-  h2 a {
-        color: var(--title-color);
-  }
+        
   header,
   footer {
     font-size: 14px
@@ -483,6 +474,7 @@ article h1,
   }
   .article-link a {
     text-decoration: none;
+    color: var(--title-color)
   }
   .article-link span{
     color: var(--span-color);
@@ -530,7 +522,6 @@ article h1,
     --border-color:#ddd;
     --link-color:#000;
     --visit-color:#444;
-    --focus-color:#75b7da;
     --code-background-color: #eff1f3;
     --code-color: #000;
     --span-color:#708090;
@@ -543,8 +534,7 @@ article h1,
       --title-color: #d0dadf;  
       --border-color:#808a8f50;
       --link-color:#000;
-      --visit-color:#444;
-      --focus-color:#c2d5f3;
+      --visit-color:#a0aaaf;
       --code-background-color: transparent;
       --code-color: #a0aaaf;
       --span-color:#a0aaaf;
@@ -615,11 +605,7 @@ article h1,
     color: var(--link-color);
     text-decoration: none
   }
-
-  a:focus {
-    color: var(--focus-color)
-  }
-
+        
   header,
   footer {
     font-size: 14px

@@ -476,7 +476,7 @@ article h1,
     display: flex;
     justify-content: space-between;
     flex-direction: row;
-    margin: 100px 0;
+    margin: 3.6rem 0;
   }
   .article-link {
     margin:3.6rem 0;
@@ -697,7 +697,7 @@ article h1,
     display: flex;
     justify-content: space-between;
     flex-direction: row;
-    margin: 100px 0;
+    margin: 3.6 0;
   }
   </style>
 </head>
